@@ -3,6 +3,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from pathlib import Path
+import asyncio
+import time
 import joblib
 import pandas as pd
 import httpx
@@ -84,19 +86,46 @@ def predict_crop(data: CropInput):
 
 # Weather details
 
+CACHE_SECONDS = 1800  # reuse results for 30 minutes
+_weather_cache = {}   # {city_key: (timestamp, result)}
+
+
+async def fetch_json(client: httpx.AsyncClient, url: str, params: dict):
+    """GET with retries when the API answers 429 (too many requests)."""
+    for attempt in range(3):
+        response = await client.get(url, params=params)
+        if response.status_code == 429:
+            await asyncio.sleep(2 ** attempt)  # wait 1s, 2s, 4s
+            continue
+        response.raise_for_status()
+        return response.json()
+
+    raise HTTPException(
+        status_code=503,
+        detail="Weather service is busy. Please try again in a minute."
+    )
+
+
 @app.get("/weather")
 async def get_weather(city: str):
+
+    cache_key = city.strip().lower()
+    now = time.time()
+
+    # Serve fresh cached result if we have one
+    cached = _weather_cache.get(cache_key)
+    if cached and now - cached[0] < CACHE_SECONDS:
+        return cached[1]
 
     try:
         async with httpx.AsyncClient(timeout=15) as client:
 
             # Find the location in India
 
-            geo_url = "https://geocoding-api.open-meteo.com/v1/search"
-
-            geo_response = await client.get(
-                geo_url,
-                params={
+            geo_data = await fetch_json(
+                client,
+                "https://geocoding-api.open-meteo.com/v1/search",
+                {
                     "name": city,
                     "count": 10,
                     "language": "en",
@@ -104,10 +133,6 @@ async def get_weather(city: str):
                     "countryCode": "IN"
                 }
             )
-
-            geo_response.raise_for_status()
-
-            geo_data = geo_response.json()
 
             if not geo_data.get("results"):
                 raise HTTPException(
@@ -138,18 +163,14 @@ async def get_weather(city: str):
                 indian_locations[0]
             )
 
-            latitude = location["latitude"]
-            longitude = location["longitude"]
-
             # Get weather information
 
-            weather_url = "https://api.open-meteo.com/v1/forecast"
-
-            weather_response = await client.get(
-                weather_url,
-                params={
-                    "latitude": latitude,
-                    "longitude": longitude,
+            weather_data = await fetch_json(
+                client,
+                "https://api.open-meteo.com/v1/forecast",
+                {
+                    "latitude": location["latitude"],
+                    "longitude": location["longitude"],
                     "current": "temperature_2m,relative_humidity_2m,precipitation",
                     "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum",
                     "forecast_days": 7,
@@ -157,14 +178,10 @@ async def get_weather(city: str):
                 }
             )
 
-            weather_response.raise_for_status()
-
-            weather_data = weather_response.json()
-
             current = weather_data["current"]
             daily = weather_data["daily"]
 
-            return {
+            result = {
                 "city": location["name"],
                 "state": location.get("admin1", ""),
                 "country": location.get("country", ""),
@@ -180,10 +197,18 @@ async def get_weather(city: str):
                 }
             }
 
+            _weather_cache[cache_key] = (now, result)
+            return result
+
     except HTTPException:
+        # If the API is busy but we have an older result, serve that instead
+        if cached:
+            return cached[1]
         raise
 
     except httpx.HTTPError as e:
+        if cached:
+            return cached[1]
         raise HTTPException(
             status_code=502,
             detail=f"Weather API error: {str(e)}"
