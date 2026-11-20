@@ -106,7 +106,7 @@ async def fetch_json(client: httpx.AsyncClient, url: str, params: dict):
     )
 
 
-@app.get("/weather")
+@app.get("/weather",include_in_schema=False)
 async def get_weather(city: str):
 
     cache_key = city.strip().lower()
