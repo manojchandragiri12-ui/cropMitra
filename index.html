@@ -57,37 +57,29 @@
 
                     <div class="input-group">
                         <label for="N">Nitrogen (N)</label>
-
                         <input type="number" id="N" min="0" max="140" step="any"
                             placeholder="Enter Nitrogen value in kg/hectare" required>
-
                         <span class="input-note">Dataset range: 0–140 kg/hectare</span>
                     </div>
 
                     <div class="input-group">
                         <label for="P">Phosphorus (P)</label>
-
                         <input type="number" id="P" min="5" max="145" step="any"
                             placeholder="Enter Phosphorus value in kg/hectare" required>
-
                         <span class="input-note">Dataset range: 5–145 kg/hectare</span>
                     </div>
 
                     <div class="input-group">
                         <label for="K">Potassium (K)</label>
-
                         <input type="number" id="K" min="5" max="205" step="any"
                             placeholder="Enter Potassium value in kg/hectare" required>
-
                         <span class="input-note">Dataset range: 5–205 kg/hectare</span>
                     </div>
 
                     <div class="input-group">
                         <label for="ph">Soil pH</label>
-
                         <input type="number" id="ph" min="3.504752" max="9.935091" step="any"
                             placeholder="Enter soil pH value" required>
-
                         <span class="input-note">Dataset range: 3.50–9.94</span>
                     </div>
 
@@ -99,28 +91,22 @@
 
                     <div class="input-group">
                         <label for="temperature">Temperature (°C)</label>
-
                         <input type="number" id="temperature" min="8.825675" max="43.675493" step="any"
                             placeholder="Enter temperature in °C" required>
-
                         <span class="input-note">Dataset range: 8.83–43.68 °C</span>
                     </div>
 
                     <div class="input-group">
                         <label for="humidity">Humidity (%)</label>
-
                         <input type="number" id="humidity" min="14.258040" max="99.981876" step="any"
                             placeholder="Enter humidity percentage" required>
-
                         <span class="input-note">Dataset range: 14.26–99.98%</span>
                     </div>
 
                     <div class="input-group">
                         <label for="rainfall">Rainfall (mm)</label>
-
                         <input type="number" id="rainfall" min="20.211267" max="298.560117" step="any"
                             placeholder="Enter rainfall in mm" required>
-
                         <span class="input-note">Dataset range: 20.21–298.56 mm</span>
                     </div>
 
@@ -283,7 +269,6 @@
     <script>
 
         const cropFields = {
-
             N: { name: "Nitrogen", min: 0, max: 140 },
             P: { name: "Phosphorus", min: 5, max: 145 },
             K: { name: "Potassium", min: 5, max: 205 },
@@ -291,119 +276,80 @@
             humidity: { name: "Humidity", min: 14.2, max: 100 },
             ph: { name: "Soil pH", min: 3.5, max: 9.9 },
             rainfall: { name: "Rainfall", min: 20.2, max: 298.6 }
-
         };
 
         // HIDE SOIL SCORE
         function hideSoilScore() {
-
             document.getElementById("soil-score-card").style.display = "none";
-
         }
 
         // CALCULATE SOIL CONDITION SCORE
-        // This is a prototype indicator based on dataset reference ranges.
-        // It is not a laboratory soil-fertility measurement.
-
+        // Prototype indicator based on dataset reference ranges.
+        // Not a laboratory soil-fertility measurement.
         function calculateSoilConditionScore(N, P, K, ph) {
 
             function rangeCloseness(value, min, max) {
-
                 const midpoint = (min + max) / 2;
-
                 const halfRange = (max - min) / 2;
-
                 const score = 100 - (Math.abs(value - midpoint) / halfRange) * 100;
-
                 return Math.max(0, Math.min(100, score));
-
             }
 
             const nitrogenScore = rangeCloseness(N, 0, 140);
-
             const phosphorusScore = rangeCloseness(P, 5, 145);
-
             const potassiumScore = rangeCloseness(K, 5, 205);
 
             // pH scoring
-
             let phScore;
 
             if (ph >= 6 && ph <= 7) {
-
                 phScore = 100;
-
             } else if (ph < 6) {
-
                 phScore = Math.max(0, 100 - (6 - ph) * 25);
-
             } else {
-
                 phScore = Math.max(0, 100 - (ph - 7) * 25);
-
             }
 
             // Equal weight for all four parameters
-
-            const finalScore = Math.round(
-
+            return Math.round(
                 nitrogenScore * 0.25 +
                 phosphorusScore * 0.25 +
                 potassiumScore * 0.25 +
                 phScore * 0.25
-
             );
-
-            return finalScore;
-
         }
 
         // DISPLAY SOIL CONDITION SCORE
-
         function displaySoilConditionScore(score) {
 
             const card = document.getElementById("soil-score-card");
 
             document.getElementById("soil-score-value").innerText = score;
-
             document.getElementById("soil-score-fill").style.width = score + "%";
 
             let status;
-
             let note;
 
             if (score >= 75) {
-
                 status = "Higher dataset-range alignment";
-
                 note = "Your N, P, K and pH inputs are relatively close to the reference ranges used by this prototype.";
-
             } else if (score >= 50) {
-
                 status = "Moderate dataset-range alignment";
-
                 note = "Some of your inputs differ from the prototype reference ranges. Consider getting a laboratory soil test.";
-
             } else {
-
                 status = "Lower dataset-range alignment";
-
                 note = "Your inputs differ considerably from the prototype reference ranges. A laboratory soil test is recommended.";
-
             }
 
             document.getElementById("soil-score-status").innerText = status;
 
             document.getElementById("soil-score-note").innerText =
-
                 note + " This is an indicative score, not a scientifically validated soil fertility rating or a substitute for soil testing.";
 
             card.style.display = "block";
-
         }
 
         // SHOW RESULT MESSAGE
-
         function showMessage(title, message, isError = false) {
 
             hideSoilScore();
@@ -411,7 +357,6 @@
             const resultBox = document.getElementById("result");
 
             resultBox.style.display = "block";
-
             resultBox.style.borderLeftColor = isError ? "var(--error)" : "var(--olive)";
 
             document.getElementById("result-title").innerText =
@@ -423,11 +368,9 @@
                 isError ? "var(--error)" : "var(--olive-dark)";
 
             document.getElementById("result-message").innerText = message;
-
         }
 
         // CROP PREDICTION
-
         async function predictCrop() {
 
             const inputData = {};
@@ -435,47 +378,33 @@
             for (const [field, rules] of Object.entries(cropFields)) {
 
                 const input = document.getElementById(field);
-
                 const val = input.value.trim();
 
                 if (val === "") {
-
                     showMessage("Error", `Please enter a value for ${rules.name}.`, true);
-
                     input.focus();
-
                     return;
-
                 }
 
                 const numberValue = Number(val);
 
                 if (!Number.isFinite(numberValue)) {
-
                     showMessage("Error", `Please enter a valid number for ${rules.name}.`, true);
-
                     input.focus();
-
                     return;
-
                 }
 
                 if (numberValue < rules.min || numberValue > rules.max) {
-
                     showMessage(
                         "Invalid Input",
                         `${rules.name} must be between ${rules.min} and ${rules.max}.`,
                         true
                     );
-
                     input.focus();
-
                     return;
-
                 }
 
                 inputData[field] = numberValue;
-
             }
 
             showMessage(
@@ -486,47 +415,34 @@
 
             try {
 
-                // FIXED: Use the same server hosting the website
+                // Use the same server hosting the website
                 const response = await fetch("/predict", {
-
                     method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(inputData)
-
                 });
 
                 const data = await response.json();
 
                 if (!response.ok) {
-
                     showMessage(
                         "Prediction Failed",
                         data.detail || "Unable to predict the crop. Please check your input values.",
                         true
                     );
-
                     return;
-
                 }
 
                 if (!data.predicted_crop) {
-
                     showMessage(
                         "Error",
                         "The server did not return a predicted crop. Please check the backend response.",
                         true
                     );
-
                     return;
-
                 }
 
                 // DISPLAY CROP PREDICTION
-
                 showMessage(
                     data.predicted_crop,
                     "Recommended crop based on your input parameters.",
@@ -534,14 +450,11 @@
                 );
 
                 // CALCULATE AND DISPLAY SOIL SCORE
-
                 const soilScore = calculateSoilConditionScore(
-
                     inputData.N,
                     inputData.P,
                     inputData.K,
                     inputData.ph
-
                 );
 
                 displaySoilConditionScore(soilScore);
@@ -555,88 +468,139 @@
                     "Unable to connect to the prediction server. Please try again later.",
                     true
                 );
-
             }
-
         }
 
         // SAMPLE VALUES
-
         function sampleValues() {
 
             document.getElementById("N").value = 90;
-
             document.getElementById("P").value = 42;
-
             document.getElementById("K").value = 43;
-
             document.getElementById("temperature").value = 20.8;
-
             document.getElementById("humidity").value = 82;
-
             document.getElementById("ph").value = 6.5;
-
             document.getElementById("rainfall").value = 202.9;
 
             document.getElementById("result").style.display = "none";
 
             hideSoilScore();
-
         }
 
         // CLEAR FORM
-
         function clearForm() {
 
             Object.keys(cropFields).forEach(field => {
-
                 document.getElementById(field).value = "";
-
             });
 
             document.getElementById("result").style.display = "none";
 
             hideSoilScore();
-
         }
 
         // WEATHER INFORMATION
+        // The browser asks Open-Meteo directly, so each visitor uses their own
+        // internet address instead of the shared Render server address.
+
+        const weatherCache = {};                  // remember results for 30 minutes
+        const WEATHER_CACHE_MS = 30 * 60 * 1000;
 
         async function getWeather() {
 
             const city = document.getElementById("city").value.trim();
-
             const message = document.getElementById("weather-message");
-
             const weatherResult = document.getElementById("weather-result");
 
             if (!city) {
-
                 message.innerText = "Please enter a city name.";
-
                 weatherResult.style.display = "none";
-
                 return;
-
             }
 
             message.innerText = "Fetching weather...";
-
             weatherResult.style.display = "none";
 
             try {
 
-                // FIXED: Use the same server hosting the website
-                const response = await fetch(
-                    `/weather?city=${encodeURIComponent(city)}`
-                );
+                const cacheKey = city.toLowerCase();
+                let data;
 
-                const data = await response.json();
+                const cached = weatherCache[cacheKey];
 
-                if (!response.ok) {
+                if (cached && Date.now() - cached.time < WEATHER_CACHE_MS) {
 
-                    throw new Error(data.detail || "City not found.");
+                    data = cached.data;
 
+                } else {
+
+                    // 1. Find the city in India
+                    const geoUrl =
+                        "https://geocoding-api.open-meteo.com/v1/search" +
+                        `?name=${encodeURIComponent(city)}` +
+                        "&count=10&language=en&format=json&countryCode=IN";
+
+                    const geoResponse = await fetch(geoUrl);
+
+                    if (geoResponse.status === 429) {
+                        throw new Error("Weather service is busy. Please try again in a minute.");
+                    }
+
+                    if (!geoResponse.ok) {
+                        throw new Error("Unable to look up the city right now.");
+                    }
+
+                    const geoData = await geoResponse.json();
+
+                    const indianLocations = (geoData.results || []).filter(
+                        item => item.country_code === "IN"
+                    );
+
+                    if (indianLocations.length === 0) {
+                        throw new Error("Location not found in India. Please enter a valid Indian city.");
+                    }
+
+                    const location =
+                        indianLocations.find(
+                            item => (item.name || "").toLowerCase() === city.toLowerCase()
+                        ) || indianLocations[0];
+
+                    // 2. Get the weather for that location
+                    const weatherUrl =
+                        "https://api.open-meteo.com/v1/forecast" +
+                        `?latitude=${location.latitude}` +
+                        `&longitude=${location.longitude}` +
+                        "&current=temperature_2m,relative_humidity_2m,precipitation" +
+                        "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum" +
+                        "&forecast_days=7&timezone=auto";
+
+                    const weatherResponse = await fetch(weatherUrl);
+
+                    if (weatherResponse.status === 429) {
+                        throw new Error("Weather service is busy. Please try again in a minute.");
+                    }
+
+                    if (!weatherResponse.ok) {
+                        throw new Error("Unable to get weather data right now.");
+                    }
+
+                    const weatherData = await weatherResponse.json();
+
+                    data = {
+                        city: location.name,
+                        country: location.country || "",
+                        temperature: weatherData.current.temperature_2m,
+                        humidity: weatherData.current.relative_humidity_2m,
+                        current_precipitation: weatherData.current.precipitation,
+                        forecast: {
+                            dates: weatherData.daily.time,
+                            max_temperature: weatherData.daily.temperature_2m_max,
+                            min_temperature: weatherData.daily.temperature_2m_min,
+                            rainfall: weatherData.daily.precipitation_sum
+                        }
+                    };
+
+                    weatherCache[cacheKey] = { time: Date.now(), data: data };
                 }
 
                 message.innerText = "";
@@ -646,35 +610,22 @@
                 document.getElementById("weather-city").innerText =
                     `${data.city}, ${data.country}`;
 
-                document.getElementById("weather-temp").innerText =
-                    data.temperature;
-
-                document.getElementById("weather-humidity").innerText =
-                    data.humidity;
-
-                document.getElementById("weather-rain").innerText =
-                    data.current_precipitation;
+                document.getElementById("weather-temp").innerText = data.temperature;
+                document.getElementById("weather-humidity").innerText = data.humidity;
+                document.getElementById("weather-rain").innerText = data.current_precipitation;
 
                 let forecastHTML = "";
 
                 for (let i = 0; i < data.forecast.dates.length; i++) {
 
                     forecastHTML += `
-
                         <div class="forecast-card">
-
                             <h4>${data.forecast.dates[i]}</h4>
-
                             <p>Max: ${data.forecast.max_temperature[i]} °C</p>
-
                             <p>Min: ${data.forecast.min_temperature[i]} °C</p>
-
                             <p>Rain: ${data.forecast.rainfall[i]} mm</p>
-
                         </div>
-
                     `;
-
                 }
 
                 document.getElementById("forecast-list").innerHTML = forecastHTML;
@@ -683,24 +634,17 @@
 
                 console.error("Weather error:", error);
 
-                message.innerText = error.message;
+                message.innerText = error.message || "Unable to get weather right now.";
 
                 weatherResult.style.display = "none";
-
             }
-
         }
 
         // ENTER KEY FOR WEATHER SEARCH
-
         document.getElementById("city").addEventListener("keydown", (e) => {
-
             if (e.key === "Enter") {
-
                 getWeather();
-
             }
-
         });
 
     </script>
